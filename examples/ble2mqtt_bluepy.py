@@ -23,6 +23,8 @@ import paho.mqtt.client as mqtt
 
 from bluepy import btle
 
+from ha_autodiscovery import publish_ha_autodiscovery
+
 import logging
 # logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=logging.INFO)
@@ -70,6 +72,7 @@ parser = BleParser(
 
 SENSOR_BUFFER = defaultdict(dict)
 
+
 ## Define callback
 def process_parsed_data(sensor_data, tracker_data):
 
@@ -86,7 +89,9 @@ def process_parsed_data(sensor_data, tracker_data):
         if set(new.keys()) == set(old.keys()):
             # Buffer filled, lets publish!
             logging.info(f"  Sent to MQTT {MQTT_SENSOR_BASE_TOPIC}/{mac} = {json.dumps(new)}")
-            client.publish(f"{MQTT_SENSOR_BASE_TOPIC}/{mac}", json.dumps(new))
+            state_topic = f"{MQTT_SENSOR_BASE_TOPIC}/{mac}"
+            client.publish(state_topic, json.dumps(new))
+            publish_ha_autodiscovery(client, new, mac, state_topic)
         else:
             logging.info("  Waiting to fill buffer before sending to MQTT")
 
