@@ -34,6 +34,8 @@ import aioblescan as aiobs
 from bleparser import BleParser
 import paho.mqtt.client as mqtt
 
+from ha_autodiscovery import publish_ha_autodiscovery
+
 import os
 LOCALCONFIG = "config.local.py"
 
@@ -92,7 +94,9 @@ def process_hci_events(data):
 
         if set(new.keys()) == set(old.keys()):
             # Buffer filled, lets publish!
-            client.publish(f"{MQTT_SENSOR_BASE_TOPIC}/{mac}", json.dumps(new))
+            state_topic = f"{MQTT_SENSOR_BASE_TOPIC}/{mac}"
+            client.publish(state_topic, json.dumps(new))
+            publish_ha_autodiscovery(client, new, mac, state_topic)
 
 
 ## Get everything connected
